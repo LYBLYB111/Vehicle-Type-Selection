@@ -527,17 +527,44 @@
     }
 
     .result-flow-tip {
-      margin-top: 12px;
-      font-size: 0.8rem;
-      color: #15803d;
-      background: rgba(255, 255, 255, 0.85);
-      border: 1px solid #bbf7d0;
-      padding: 9px 12px;
-      border-radius: 8px;
+      margin-top: 14px;
+      background: #f0fdf4;
+      border: 1.5px dashed #86efac;
+      padding: 12px 14px;
+      border-radius: 10px;
       display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 0.85rem;
+      color: #166534;
+      line-height: 1.5;
+    }
+
+    .result-flow-tip .tip-icon {
+      font-size: 1.1rem;
+      line-height: 1;
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+
+    .result-flow-tip .tip-content {
+      flex: 1;
+    }
+
+    .blue-btn-badge {
+      display: inline-flex;
       align-items: center;
-      gap: 6px;
-      line-height: 1.4;
+      gap: 3px;
+      background: #2563eb;
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 0.775rem;
+      padding: 2px 7px;
+      border-radius: 5px;
+      vertical-align: middle;
+      box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3);
+      margin: 0 2px;
+      white-space: nowrap;
     }
 
     /* 底部信息 */
@@ -855,7 +882,10 @@
     </button>
 
     <div class="result-flow-tip">
-      <span>💡</span> 复制成功后，请点击右下角见数平台的<strong>【继续作答】</strong>悬浮按钮返回问卷粘贴。
+      <span class="tip-icon">💡</span>
+      <div class="tip-content">
+        <strong>后续操作指引：</strong>复制成功后，请点击手机屏幕右下角蓝色的<span class="blue-btn-badge">继续作答 ➔</span>悬浮按钮返回问卷，长按文本框粘贴即可完成匹配。
+      </div>
     </div>
   </div>
 
@@ -1477,14 +1507,14 @@
       }
 
       btnCopy.classList.add('copied');
-      btnCopy.innerHTML = '<span>✅</span> 已复制车型ID！请返回问卷粘贴';
+      btnCopy.innerHTML = '<span>✅</span> 已复制ID！请点击右下角【继续作答】';
 
-      showToast(`已复制：${currentFullId}，请切回问卷粘贴！`);
+      showToast(`已复制：${currentFullId}，请点击右下角蓝色【继续作答】！`);
 
       setTimeout(() => {
         btnCopy.classList.remove('copied');
         btnCopy.innerHTML = '<span>📋</span> 一键复制车型ID';
-      }, 3000);
+      }, 3500);
     }
 
     function showToast(msg) {
