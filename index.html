@@ -31,7 +31,7 @@
       background-color: var(--bg);
       color: var(--text-main);
       line-height: 1.5;
-      padding: 16px;
+      padding: 16px 16px 140px 16px; /* 底部预留 140px 绝对安全垫高，彻底避开见数“继续作答”悬浮按钮 */
       min-height: 100vh;
     }
 
@@ -188,17 +188,6 @@
       overscroll-behavior: contain;
     }
 
-    /* 自定义轻量滚动条 */
-    .search-series-tags::-webkit-scrollbar,
-    .search-results::-webkit-scrollbar {
-      width: 6px;
-    }
-    .search-series-tags::-webkit-scrollbar-thumb,
-    .search-results::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
-      border-radius: 3px;
-    }
-
     .series-tag {
       display: inline-flex;
       align-items: center;
@@ -268,6 +257,8 @@
       font-size: 0.8rem;
       color: var(--text-muted);
       margin-top: 2px;
+      white-space: normal;
+      line-height: 1.35;
     }
 
     .search-item-badge {
@@ -347,7 +338,7 @@
       border-color: var(--primary);
     }
 
-    /* 下拉联动选择器 */
+    /* 下拉选择器与自定义款型触发按钮 */
     .select-group {
       margin-bottom: 14px;
     }
@@ -393,6 +384,51 @@
       border-color: #e2e8f0;
     }
 
+    /* 自定义款型选择器触发框（代替原生 select 避免截断） */
+    .model-select-trigger {
+      width: 100%;
+      padding: 11px 14px;
+      font-size: 0.925rem;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background-color: #fff;
+      color: var(--text-main);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.2s;
+      user-select: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      background-size: 16px;
+    }
+
+    .model-select-trigger.disabled {
+      background-color: #f1f5f9;
+      color: #94a3b8;
+      cursor: not-allowed;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    }
+
+    .model-select-trigger:not(.disabled):hover {
+      border-color: var(--primary);
+    }
+
+    .model-select-text {
+      padding-right: 24px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-weight: 500;
+    }
+
+    .model-select-text.has-value {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
     /* 识别结果卡片 */
     .result-card {
       display: none;
@@ -401,6 +437,7 @@
       border-radius: var(--radius);
       padding: 20px;
       margin-top: 16px;
+      margin-bottom: 24px;
       box-shadow: 0 6px 16px rgba(5, 150, 105, 0.08);
       animation: fadeIn 0.3s ease;
     }
@@ -426,8 +463,9 @@
       font-size: 1.05rem;
       font-weight: 700;
       color: #0f172a;
-      line-height: 1.4;
+      line-height: 1.45;
       margin-bottom: 14px;
+      word-break: break-all;
     }
 
     .result-id-box {
@@ -488,6 +526,20 @@
       box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.2);
     }
 
+    .result-flow-tip {
+      margin-top: 12px;
+      font-size: 0.8rem;
+      color: #15803d;
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid #bbf7d0;
+      padding: 9px 12px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      line-height: 1.4;
+    }
+
     /* 底部信息 */
     .footer {
       text-align: center;
@@ -497,7 +549,205 @@
       padding-bottom: 16px;
     }
 
-    /* Toast 弹窗通知 */
+    /* ============================================================
+       底部抽屉弹窗 (Bottom Sheet Modal) - 彻底解决手机端款型截断问题
+       ============================================================ */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 10000;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+      opacity: 1;
+    }
+
+    .modal-sheet {
+      width: 100%;
+      max-width: 680px;
+      background: #ffffff;
+      border-radius: 20px 20px 0 0;
+      box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.2);
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      transform: translateY(100%);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .modal-overlay.open .modal-sheet {
+      transform: translateY(0);
+    }
+
+    .modal-header {
+      padding: 16px 20px 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .modal-title-group {
+      flex: 1;
+    }
+
+    .modal-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .modal-subtitle {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .modal-close {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #f1f5f9;
+      border: none;
+      font-size: 1.3rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+
+    .modal-close:hover, .modal-close:active {
+      background: #e2e8f0;
+      color: var(--text-main);
+    }
+
+    /* 年份快捷过滤横向滚动条 (导师建议的年份四级视觉过滤) */
+    .modal-years-wrapper {
+      padding: 10px 16px;
+      background: #f8fafc;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      overflow-x: auto;
+      flex-shrink: 0;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .modal-years-wrapper::-webkit-scrollbar {
+      display: none;
+    }
+
+    .year-pill {
+      padding: 5px 12px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-main);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+
+    .year-pill.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+
+    /* 款型搜索过滤小框 */
+    .modal-filter-wrapper {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .modal-filter-input {
+      width: 100%;
+      padding: 9px 14px;
+      border-radius: 8px;
+      border: 1.5px solid var(--border);
+      font-size: 0.875rem;
+      outline: none;
+    }
+
+    .modal-filter-input:focus {
+      border-color: var(--primary);
+    }
+
+    /* 款型多行列表 - 完整折行，不截断！ */
+    .modal-list {
+      padding: 8px 0;
+      overflow-y: auto;
+      flex: 1;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .modal-item {
+      padding: 13px 20px;
+      border-bottom: 1px solid #f8fafc;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      transition: background 0.15s;
+    }
+
+    .modal-item:hover, .modal-item:active {
+      background: #eff6ff;
+    }
+
+    .modal-item.active {
+      background: #eff6ff;
+      border-left: 4px solid var(--primary);
+    }
+
+    .modal-item-text {
+      flex: 1;
+      font-size: 0.925rem;
+      font-weight: 500;
+      color: var(--text-main);
+      line-height: 1.45;
+      white-space: normal; /* 关键：多行折行展示，绝不出现 ... 截断！ */
+      word-break: break-all;
+    }
+
+    .modal-item.active .modal-item-text {
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .modal-item-badge {
+      font-size: 0.75rem;
+      font-family: monospace;
+      background: #f1f5f9;
+      color: #475569;
+      padding: 3px 6px;
+      border-radius: 6px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .modal-item.active .modal-item-badge {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    /* Toast 通知 */
     .toast {
       position: fixed;
       top: 20px;
@@ -513,7 +763,7 @@
       opacity: 0;
       pointer-events: none;
       transition: all 0.3s ease;
-      z-index: 9999;
+      z-index: 99999;
       display: flex;
       align-items: center;
       gap: 8px;
@@ -547,7 +797,7 @@
     <div class="section-title">🔍 方式一：快速搜索（推荐）</div>
     <div class="search-box-wrapper">
       <span class="search-icon">🔍</span>
-      <input type="text" id="searchInput" class="search-input" placeholder="输入品牌、车系或款型（如：奔驰E级、秦PLUS、Model S）" autocomplete="off">
+      <input type="text" id="searchInput" class="search-input" placeholder="输入品牌、车系或款型（如：奔驰E级、途安、秦PLUS、Model S）" autocomplete="off">
       <button id="searchClear" class="search-clear">&times;</button>
       <div id="searchResults" class="search-results"></div>
     </div>
@@ -578,12 +828,12 @@
       </select>
     </div>
 
-    <!-- 3. 款型选择 -->
+    <!-- 3. 款型选择 (自定义防截断面板触发框) -->
     <div class="select-group">
-      <label class="select-label" for="modelSelect">3. 年款与配置</label>
-      <select id="modelSelect" class="custom-select" disabled>
-        <option value="">-- 请先选择车系 --</option>
-      </select>
+      <label class="select-label">3. 年款与配置（支持多行完整显示）</label>
+      <div id="modelSelectTrigger" class="model-select-trigger disabled">
+        <span id="modelSelectText" class="model-select-text">-- 请先选择车系 --</span>
+      </div>
     </div>
   </div>
 
@@ -603,10 +853,40 @@
     <button id="btnCopy" class="btn-copy">
       <span>📋</span> 一键复制车型ID
     </button>
+
+    <div class="result-flow-tip">
+      <span>💡</span> 复制成功后，请点击右下角见数平台的<strong>【继续作答】</strong>悬浮按钮返回问卷粘贴。
+    </div>
   </div>
 
   <div class="footer">
     学术研究数据匹配系统 · 数据版本：2026版 · 纯静态安全托管
+  </div>
+</div>
+
+<!-- ============================================================
+     款型自适应多行选择抽屉 (Bottom Sheet Modal)
+     ============================================================ -->
+<div id="modelModal" class="modal-overlay">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <div class="modal-title-group">
+        <div class="modal-title" id="modalTitle">选择年款与配置</div>
+        <div class="modal-subtitle" id="modalSubtitle">点击选择您拥有的具体车型</div>
+      </div>
+      <button type="button" class="modal-close" id="modalClose">&times;</button>
+    </div>
+
+    <!-- 导师提议的年份快捷过滤条 -->
+    <div class="modal-years-wrapper" id="modalYearsBar"></div>
+
+    <!-- 快捷关键词搜索过滤 -->
+    <div class="modal-filter-wrapper">
+      <input type="text" id="modalFilterInput" class="modal-filter-input" placeholder="🔍 输入关键词快速过滤（如：2021、7座、尊贵型）">
+    </div>
+
+    <!-- 款型全称列表 (支持完整折行，无系统级截断) -->
+    <div class="modal-list" id="modalList"></div>
   </div>
 </div>
 
@@ -621,7 +901,6 @@
 
 <script>
   (function() {
-    // 数据安全检查
     if (!window.VEHICLE_DATA || !Array.isArray(window.VEHICLE_DATA)) {
       alert('数据加载异常，请刷新页面或检查网络。');
       return;
@@ -633,7 +912,8 @@
     const letterBar = document.getElementById('letterBar');
     const brandSelect = document.getElementById('brandSelect');
     const seriesSelect = document.getElementById('seriesSelect');
-    const modelSelect = document.getElementById('modelSelect');
+    const modelSelectTrigger = document.getElementById('modelSelectTrigger');
+    const modelSelectText = document.getElementById('modelSelectText');
     const searchInput = document.getElementById('searchInput');
     const searchClear = document.getElementById('searchClear');
     const searchResults = document.getElementById('searchResults');
@@ -644,15 +924,28 @@
     const toast = document.getElementById('toast');
     const toastMsg = document.getElementById('toastMsg');
 
+    // 抽屉弹窗 DOM
+    const modelModal = document.getElementById('modelModal');
+    const modalClose = document.getElementById('modalClose');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalSubtitle = document.getElementById('modalSubtitle');
+    const modalYearsBar = document.getElementById('modalYearsBar');
+    const modalFilterInput = document.getElementById('modalFilterInput');
+    const modalList = document.getElementById('modalList');
+
     // 当前选中的状态
     let currentBrand = null;
     let currentSeries = null;
-    let currentModel = null;
+    let currentModelIndex = null;
     let currentFullId = '';
     let currentFullName = '';
     let activeLetter = '全部';
 
-    // 1. 初始化字母导航栏（动态提取现有品牌的首字母）
+    // 抽屉内部状态
+    let activeYearFilter = '全部';
+    let currentSeriesModels = [];
+
+    // 1. 初始化字母导航栏
     const letterSet = new Set(data.map(b => b[2]));
     const sortedLetters = Array.from(letterSet).sort((a, b) => a === '#' ? 1 : b === '#' ? -1 : a.localeCompare(b));
     const letters = ['全部', ...sortedLetters];
@@ -689,11 +982,13 @@
     function resetSeriesAndModel() {
       currentBrand = null;
       currentSeries = null;
-      currentModel = null;
+      currentModelIndex = null;
       seriesSelect.innerHTML = '<option value="">-- 请先选择品牌 --</option>';
       seriesSelect.disabled = true;
-      modelSelect.innerHTML = '<option value="">-- 请先选择车系 --</option>';
-      modelSelect.disabled = true;
+      
+      modelSelectTrigger.classList.add('disabled');
+      modelSelectText.textContent = '-- 请先选择车系 --';
+      modelSelectText.classList.remove('has-value');
       hideResultCard();
     }
 
@@ -706,7 +1001,7 @@
       }
       currentBrand = data.find(b => b[0] === bId);
       currentSeries = null;
-      currentModel = null;
+      currentModelIndex = null;
 
       // 渲染车系
       const seriesList = currentBrand[3];
@@ -714,8 +1009,9 @@
         seriesList.map(s => `<option value="${s[0]}">${s[1]}</option>`).join('');
       seriesSelect.disabled = false;
 
-      modelSelect.innerHTML = '<option value="">-- 请先选择车系 --</option>';
-      modelSelect.disabled = true;
+      modelSelectTrigger.classList.add('disabled');
+      modelSelectText.textContent = '-- 请先选择车系 --';
+      modelSelectText.classList.remove('has-value');
       hideResultCard();
     });
 
@@ -724,41 +1020,159 @@
       const sId = seriesSelect.value;
       if (!sId || !currentBrand) {
         currentSeries = null;
-        currentModel = null;
-        modelSelect.innerHTML = '<option value="">-- 请先选择车系 --</option>';
-        modelSelect.disabled = true;
+        currentModelIndex = null;
+        modelSelectTrigger.classList.add('disabled');
+        modelSelectText.textContent = '-- 请先选择车系 --';
+        modelSelectText.classList.remove('has-value');
         hideResultCard();
         return;
       }
       currentSeries = currentBrand[3].find(s => s[0] === sId);
-      currentModel = null;
+      currentModelIndex = null;
 
-      // 渲染款型
-      const modelsList = currentSeries[2];
-      modelSelect.innerHTML = `<option value="">-- 请选择具体年款配置 (${modelsList.length}款) --</option>` +
-        modelsList.map((m, idx) => `<option value="${idx}">${m}</option>`).join('');
-      modelSelect.disabled = false;
+      // 激活款型触发框
+      currentSeriesModels = currentSeries[2];
+      modelSelectTrigger.classList.remove('disabled');
+      modelSelectText.textContent = `-- 点击选择年款与配置 (共 ${currentSeriesModels.length} 款) --`;
+      modelSelectText.classList.remove('has-value');
       hideResultCard();
     });
 
-    // 款型改变事件
-    modelSelect.addEventListener('change', () => {
-      const mIdx = modelSelect.value;
-      if (mIdx === '' || !currentBrand || !currentSeries) {
-        currentModel = null;
-        hideResultCard();
+    // 3. 款型抽屉弹窗交互逻辑 (解决截断与四级年款视觉过滤)
+    modelSelectTrigger.addEventListener('click', () => {
+      if (modelSelectTrigger.classList.contains('disabled') || !currentSeries) return;
+      openModelModal();
+    });
+
+    modalClose.addEventListener('click', closeModelModal);
+    modelModal.addEventListener('click', (e) => {
+      if (e.target === modelModal) closeModelModal();
+    });
+
+    function openModelModal() {
+      modalTitle.textContent = `${currentBrand[1]} · ${currentSeries[1]}`;
+      modalSubtitle.textContent = `共 ${currentSeriesModels.length} 款配置，点击选择即可自动生成车型ID`;
+      modalFilterInput.value = '';
+      activeYearFilter = '全部';
+
+      // 提取所有涉及的年份 (如 2025, 2024, 2023...)
+      extractYears();
+      renderModalList();
+
+      modelModal.classList.add('open');
+      document.body.style.overflow = 'hidden'; // 防止背景滑动
+    }
+
+    function closeModelModal() {
+      modelModal.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    // 提取年份生成快捷胶囊条 (满足导师对年款分级的诉求)
+    function extractYears() {
+      const yearsSet = new Set();
+      let hasNoYear = false;
+      currentSeriesModels.forEach(m => {
+        const match = m.match(/\b((?:19|20)\d{2})款?/);
+        if (match) {
+          yearsSet.add(match[1] + '款');
+        } else {
+          hasNoYear = true;
+        }
+      });
+
+      const sortedYears = Array.from(yearsSet).sort((a, b) => b.localeCompare(a));
+      if (sortedYears.length > 1 || (sortedYears.length === 1 && hasNoYear)) {
+        modalYearsBar.style.display = 'flex';
+        const pills = ['全部', ...sortedYears];
+        if (hasNoYear && sortedYears.length > 0) {
+          pills.push('其他/未标年份');
+        }
+        modalYearsBar.innerHTML = pills.map(y => `
+          <button type="button" class="year-pill ${y === '全部' ? 'active' : ''}" data-year="${y}">${y}</button>
+        `).join('');
+      } else {
+        modalYearsBar.style.display = 'none';
+      }
+    }
+
+    modalYearsBar.addEventListener('click', (e) => {
+      const pill = e.target.closest('.year-pill');
+      if (!pill) return;
+      modalYearsBar.querySelectorAll('.year-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      activeYearFilter = pill.dataset.year;
+      renderModalList();
+    });
+
+    modalFilterInput.addEventListener('input', renderModalList);
+
+    // 渲染抽屉列表（多行自适应完整展示）
+    function renderModalList() {
+      const keyword = modalFilterInput.value.trim().toLowerCase();
+      let filtered = [];
+
+      currentSeriesModels.forEach((mName, idx) => {
+        let matchYear = true;
+        if (activeYearFilter === '其他/未标年份') {
+          matchYear = !/\b((?:19|20)\d{2})款?/.test(mName);
+        } else if (activeYearFilter !== '全部') {
+          matchYear = mName.includes(activeYearFilter.replace('款', ''));
+        }
+
+        let matchKeyword = true;
+        if (keyword) {
+          matchKeyword = mName.toLowerCase().includes(keyword);
+        }
+
+        if (matchYear && matchKeyword) {
+          const mId = 'M' + String(idx + 1).padStart(3, '0');
+          const fullId = `${currentBrand[0]}-${currentSeries[0]}-${mId}`;
+          filtered.push({
+            index: idx,
+            name: mName,
+            fullId: fullId
+          });
+        }
+      });
+
+      if (filtered.length === 0) {
+        modalList.innerHTML = '<div style="padding:32px; text-align:center; color:#94a3b8; font-size:0.9rem;">未找到符合条件的年款配置，请尝试切换年份或清空过滤词</div>';
         return;
       }
-      const idx = parseInt(mIdx, 10);
+
+      modalList.innerHTML = filtered.map(item => `
+        <div class="modal-item ${currentModelIndex === item.index ? 'active' : ''}" data-idx="${item.index}">
+          <div class="modal-item-text">${item.name}</div>
+          <div class="modal-item-badge">${item.fullId}</div>
+        </div>
+      `).join('');
+    }
+
+    // 点击抽屉中的款型
+    modalList.addEventListener('click', (e) => {
+      const item = e.target.closest('.modal-item');
+      if (!item) return;
+
+      const idx = parseInt(item.dataset.idx, 10);
+      selectModelByIndex(idx);
+      closeModelModal();
+    });
+
+    function selectModelByIndex(idx) {
+      currentModelIndex = idx;
       const mName = currentSeries[2][idx];
       const mId = 'M' + String(idx + 1).padStart(3, '0');
       const fullId = `${currentBrand[0]}-${currentSeries[0]}-${mId}`;
       const fullName = `${currentBrand[1]} · ${currentSeries[1]} · ${mName}`;
 
-      showResultCard(fullId, fullName);
-    });
+      modelSelectText.textContent = mName;
+      modelSelectText.classList.add('has-value');
 
-    // 展示结果卡片
+      showResultCard(fullId, fullName);
+    }
+
+    // 展示结果卡片（关键：居中滚动，彻底拉开与见数右下角按钮的距离！）
     function showResultCard(fullId, fullName) {
       currentFullId = fullId;
       currentFullName = fullName;
@@ -766,10 +1180,10 @@
       resultIdValue.textContent = fullId;
       resultCard.style.display = 'block';
 
-      // 滚动平滑带入视野
+      // 核心优化：平滑滚动至屏幕中央 (block: 'center')，避免与右下角“继续作答”悬浮按钮发生任何重叠
       setTimeout(() => {
-        resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }, 50);
+        resultCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 60);
     }
 
     function hideResultCard() {
@@ -778,7 +1192,7 @@
       currentFullName = '';
     }
 
-    // 3. 构建搜索双索引：车系索引 (快速直达) + 款型索引 (明细配置)
+    // 4. 构建搜索双索引：车系索引 (快速直达) + 款型索引 (明细配置)
     const seriesIndex = [];
     const modelIndex = [];
 
@@ -793,7 +1207,6 @@
         const sName = s[1];
         const models = s[2];
 
-        // 建立车系直达索引
         seriesIndex.push({
           bIndex: i,
           sIndex: j,
@@ -804,7 +1217,6 @@
           searchStr: (bName + ' ' + sName).toLowerCase()
         });
 
-        // 建立具体款型索引
         for (let k = 0; k < models.length; k++) {
           const mName = models[k];
           const mId = 'M' + String(k + 1).padStart(3, '0');
@@ -825,7 +1237,7 @@
       }
     }
 
-    // 4. 全局搜索交互逻辑（智能按热度与相关度排序，不限幅截断）
+    // 全局快速搜索逻辑
     let searchDebounce = null;
     searchInput.addEventListener('input', () => {
       const query = searchInput.value.trim().toLowerCase();
@@ -840,7 +1252,6 @@
       searchDebounce = setTimeout(() => {
         const terms = query.split(/\s+/).filter(Boolean);
 
-        // A. 检索命中的车系（全量匹配，不做人为的 12 条截断限制）
         const matchedSeries = [];
         for (let i = 0; i < seriesIndex.length; i++) {
           const sItem = seriesIndex[i];
@@ -856,9 +1267,6 @@
           }
         }
 
-        // 智能车系排序权重：
-        // 1. 完全包含或者以关键词开头的优先
-        // 2. 主力热门车系（款型数量多的，如奔驰E级、C级）优先排在前面
         matchedSeries.sort((a, b) => {
           const aFull = (a.brand + a.series).toLowerCase();
           const bFull = (b.brand + b.series).toLowerCase();
@@ -866,11 +1274,9 @@
           const bStarts = b.series.toLowerCase().startsWith(query) || bFull.startsWith(query);
           if (aStarts && !bStarts) return -1;
           if (!aStarts && bStarts) return 1;
-          // 按款型保有量/历史款型数降序
           return b.modelCount - a.modelCount;
         });
 
-        // B. 检索具体款型（采用车系多样化采集，最多展示 60 条，避免单个车系霸屏）
         const matchedModels = [];
         const seriesCountInResult = {};
         let totalMatchedCount = 0;
@@ -889,7 +1295,6 @@
             const sKey = mItem.seriesKey;
             const currentCountForSeries = seriesCountInResult[sKey] || 0;
             
-            // 如果命中较多车系，单一车系最多展示 6 款，确保各个车系都有露脸机会
             if (matchedModels.length < 60) {
               if (currentCountForSeries < 6 || terms.length >= 2) {
                 seriesCountInResult[sKey] = currentCountForSeries + 1;
@@ -899,13 +1304,11 @@
           }
         }
 
-        // C. 渲染搜索结果视图
         if (matchedSeries.length === 0 && matchedModels.length === 0) {
           searchResults.innerHTML = '<div style="padding:16px; text-align:center; color:#94a3b8; font-size:0.875rem;">未找到相关车型，请检查关键词或在下方分类中查找</div>';
         } else {
           let html = '';
 
-          // 1. 渲染车系快捷直达区域（展示真实数量，并支持流畅横向/纵向滚动）
           if (matchedSeries.length > 0) {
             html += `
               <div class="search-section-header">
@@ -923,7 +1326,6 @@
             `;
           }
 
-          // 2. 渲染具体款型列表
           if (matchedModels.length > 0) {
             html += `
               <div class="search-section-header">
@@ -944,7 +1346,6 @@
             `;
           }
 
-          // 3. 底部智能引导提示
           if (totalMatchedCount > matchedModels.length) {
             html += `
               <div class="search-footer-info">
@@ -960,7 +1361,6 @@
       }, 100);
     });
 
-    // 搜索清空
     searchClear.addEventListener('click', () => {
       searchInput.value = '';
       searchClear.style.display = 'none';
@@ -978,7 +1378,6 @@
         const bData = data[bIndex];
         const sData = bData[3][sIndex];
 
-        // 联动下方下拉框
         activeLetter = '全部';
         document.querySelectorAll('.letter-btn').forEach(b => {
           b.classList.toggle('active', b.dataset.letter === '全部');
@@ -991,10 +1390,11 @@
         seriesSelect.value = sData[0];
         seriesSelect.dispatchEvent(new Event('change'));
 
-        // 关闭搜索窗并提示聚焦
         searchResults.style.display = 'none';
-        showToast(`已定位到【${bData[1]} · ${sData[1]}】，请在下方选择具体款型`);
-        modelSelect.focus();
+        showToast(`已定位到【${bData[1]} · ${sData[1]}】`);
+        
+        // 自动顺畅唤起款型选择抽屉
+        setTimeout(openModelModal, 200);
         return;
       }
 
@@ -1008,7 +1408,6 @@
         const bData = data[bIndex];
         const sData = bData[3][sIndex];
 
-        // 同步设置下方下拉联动框
         activeLetter = '全部';
         document.querySelectorAll('.letter-btn').forEach(b => {
           b.classList.toggle('active', b.dataset.letter === '全部');
@@ -1021,29 +1420,23 @@
         seriesSelect.value = sData[0];
         seriesSelect.dispatchEvent(new Event('change'));
 
-        modelSelect.value = String(mIndex);
-        modelSelect.dispatchEvent(new Event('change'));
-
-        // 关闭搜索列表
+        selectModelByIndex(mIndex);
         searchResults.style.display = 'none';
       }
     });
 
-    // 点击外部隐藏搜索下拉
     document.addEventListener('click', (e) => {
       if (!e.target.closest('.search-box-wrapper')) {
         searchResults.style.display = 'none';
       }
     });
 
-    // 5. 一键复制功能（带 iframe 权限降级保护）
+    // 5. 一键复制功能（严格复制纯 ID）
     btnCopy.addEventListener('click', () => {
       if (!currentFullId) return;
 
-      // 仅复制纯 ID 码
       const textToCopy = currentFullId;
 
-      // 优先使用 navigator.clipboard，如果被 iframe 限制则自动使用 textarea 兜底
       if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(textToCopy).then(() => {
           showCopySuccess();
@@ -1079,7 +1472,6 @@
     }
 
     function showCopySuccess() {
-      // 触觉震动反馈（如果移动端设备支持）
       if (navigator.vibrate) {
         navigator.vibrate(30);
       }
@@ -1103,7 +1495,6 @@
       }, 2500);
     }
 
-    // 页面初始化
     renderBrandOptions();
   })();
 </script>
