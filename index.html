@@ -567,6 +567,120 @@
       white-space: nowrap;
     }
 
+    /* 动力类型胶囊标签 (燃油A、插混B、纯电C) */
+    .energy-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 2px 7px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      white-space: nowrap;
+      vertical-align: middle;
+      line-height: 1.3;
+    }
+
+    .energy-fuel {
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fde68a;
+    }
+
+    .energy-hybrid {
+      background: #ecfdf5;
+      color: #047857;
+      border: 1px solid #a7f3d0;
+    }
+
+    .energy-ev {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+    }
+
+    /* 动力大类展示与核对提醒 */
+    .result-energy-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 12px;
+      font-size: 0.85rem;
+      color: #334155;
+    }
+
+    .energy-match-alert {
+      margin-top: 6px;
+      margin-bottom: 14px;
+      background: #fffbeb;
+      border-left: 4px solid #f59e0b;
+      padding: 10px 12px;
+      border-radius: 6px;
+      font-size: 0.825rem;
+      color: #92400e;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      line-height: 1.45;
+    }
+
+    /* 抽屉内动力类型快捷筛选条 */
+    .modal-energy-box {
+      padding: 8px 16px;
+      background: #f1f5f9;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .modal-energy-box::-webkit-scrollbar {
+      display: none;
+    }
+
+    .energy-box-label {
+      font-size: 0.775rem;
+      font-weight: 700;
+      color: #475569;
+      white-space: nowrap;
+      margin-right: 2px;
+    }
+
+    .energy-filter-pill {
+      padding: 4px 10px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      font-size: 0.775rem;
+      font-weight: 600;
+      color: var(--text-main);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+
+    .energy-filter-pill.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+
+    .modal-item-info-col {
+      flex: 1;
+      padding-right: 8px;
+    }
+
+    .modal-item-tags {
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
     /* 底部信息 */
     .footer {
       text-align: center;
@@ -884,7 +998,7 @@
   <div class="notice-box">
     <span>📌</span>
     <div>
-      <strong>填答须知</strong>：请确保车型与您实际拥有或常开的车辆一致。完成选择后，点击复制并直接粘贴回见数问卷中即可。
+      <strong>填答须知</strong>：请确保所选车型及其动力类型（燃油/插电混动/纯电）与您的实际情况或意向一致。车型代码末尾已自动标注动力标识（<strong>A:燃油，B:插混/增程，C:纯电</strong>），复制后直接粘贴回问卷中即可。
     </div>
   </div>
 
@@ -943,8 +1057,20 @@
     <div id="resultCarName" class="result-car-name">--</div>
 
     <div class="result-id-box">
-      <div class="result-id-label">专属车型ID码（用于问卷匹配）</div>
-      <div id="resultIdValue" class="result-id-value">B000-S000-M000</div>
+      <div class="result-id-label">专属车型ID码（已含动力类型后缀，用于问卷核验与匹配）</div>
+      <div id="resultIdValue" class="result-id-value">B000-S000-M000-A</div>
+    </div>
+
+    <!-- 动力类型确认与防误选提示 -->
+    <div class="result-energy-row" id="resultEnergyRow">
+      <span style="font-weight: 600;">动力大类：</span>
+      <span id="resultEnergyBadge" class="energy-pill">--</span>
+      <span id="resultEnergyDesc" style="color: #64748b; font-size: 0.8rem;">--</span>
+    </div>
+
+    <div class="energy-match-alert" id="energyMatchAlert">
+      <span style="font-size: 1.1rem; line-height: 1;">⚠️</span>
+      <div id="energyMatchAlertText"><strong>填答意向核对提醒：</strong>该车代码以 <strong>【A】</strong> 结尾，属于<strong>【燃油车】</strong>。请确保与您在问卷前文中自述的车型动力意向一致，如不一致请重新挑选。</div>
     </div>
 
     <button id="btnCopy" class="btn-copy">
@@ -982,6 +1108,12 @@
       <button type="button" class="year-scroll-btn" id="yearScrollLeft" title="向左滚动">‹</button>
       <div class="modal-years-wrapper" id="modalYearsBar"></div>
       <button type="button" class="year-scroll-btn" id="yearScrollRight" title="向右滚动">›</button>
+    </div>
+
+    <!-- 动力类型快捷过滤胶囊条 (如果车系包含多种动力大类) -->
+    <div class="modal-energy-box" id="modalEnergyBox" style="display: none;">
+      <span class="energy-box-label">动力类型：</span>
+      <div id="modalEnergyPills" style="display: flex; gap: 6px; align-items: center;"></div>
     </div>
 
     <!-- 快捷关键词搜索过滤 -->
@@ -1028,6 +1160,19 @@
     const toast = document.getElementById('toast');
     const toastMsg = document.getElementById('toastMsg');
 
+    // 动力类型映射字典 (燃油A、插混B、纯电C)
+    const ENERGY_MAP = {
+      'A': { code: 'A', name: '燃油车', icon: '⛽', badgeClass: 'energy-fuel', tip: '传统燃油/轻混/油电混动' },
+      'B': { code: 'B', name: '插混/增程', icon: '🔋', badgeClass: 'energy-hybrid', tip: '插电式混合动力/增程式' },
+      'C': { code: 'C', name: '纯电动', icon: '⚡', badgeClass: 'energy-ev', tip: '纯电动汽车 (BEV)' }
+    };
+
+    // 结果卡片动力展示 DOM
+    const resultEnergyBadge = document.getElementById('resultEnergyBadge');
+    const resultEnergyDesc = document.getElementById('resultEnergyDesc');
+    const energyMatchAlert = document.getElementById('energyMatchAlert');
+    const energyMatchAlertText = document.getElementById('energyMatchAlertText');
+
     // 抽屉弹窗 DOM
     const modelModal = document.getElementById('modelModal');
     const modalClose = document.getElementById('modalClose');
@@ -1037,6 +1182,8 @@
     const modalYearsBar = document.getElementById('modalYearsBar');
     const yearScrollLeft = document.getElementById('yearScrollLeft');
     const yearScrollRight = document.getElementById('yearScrollRight');
+    const modalEnergyBox = document.getElementById('modalEnergyBox');
+    const modalEnergyPills = document.getElementById('modalEnergyPills');
     const modalFilterInput = document.getElementById('modalFilterInput');
     const modalList = document.getElementById('modalList');
 
@@ -1050,6 +1197,7 @@
 
     // 抽屉内部状态
     let activeYearFilter = '全部';
+    let activeEnergyFilter = '全部';
     let currentSeriesModels = [];
 
     // 1. 初始化字母导航栏
@@ -1161,9 +1309,11 @@
       modalSubtitle.textContent = `共 ${currentSeriesModels.length} 款配置，点击选择即可自动生成车型ID`;
       modalFilterInput.value = '';
       activeYearFilter = '全部';
+      activeEnergyFilter = '全部';
 
-      // 提取所有涉及的年份 (如 2025, 2024, 2023...)
+      // 提取所有涉及的年份与动力类型大类
       extractYears();
+      extractEnergies();
       renderModalList();
 
       modelModal.classList.add('open');
@@ -1183,7 +1333,8 @@
       const yearsSet = new Set();
       let hasNoYear = false;
       currentSeriesModels.forEach(m => {
-        const match = m.match(/\b((?:19|20)\d{2})款?/);
+        const mName = Array.isArray(m) ? m[0] : m;
+        const match = mName.match(/\b((?:19|20)\d{2})款?/);
         if (match) {
           yearsSet.add(match[1] + '款');
         } else {
@@ -1206,6 +1357,39 @@
         modalYearsBox.style.display = 'none';
       }
     }
+
+    // 提取车系覆盖的动力大类生成快捷胶囊条 (燃油A、插混B、纯电C)
+    function extractEnergies() {
+      const energiesSet = new Set();
+      currentSeriesModels.forEach(m => {
+        const eCode = Array.isArray(m) ? m[1] : 'A';
+        energiesSet.add(eCode);
+      });
+
+      if (energiesSet.size > 1) {
+        modalEnergyBox.style.display = 'flex';
+        const pills = ['全部', ...Array.from(energiesSet).sort()];
+        modalEnergyPills.innerHTML = pills.map(e => {
+          if (e === '全部') {
+            return `<button type="button" class="energy-filter-pill active" data-energy="全部">全部动力 (${currentSeriesModels.length})</button>`;
+          }
+          const info = ENERGY_MAP[e] || { name: e, icon: '' };
+          const count = currentSeriesModels.filter(m => (Array.isArray(m) ? m[1] : 'A') === e).length;
+          return `<button type="button" class="energy-filter-pill" data-energy="${e}">${info.icon} ${info.name} [${e}] (${count})</button>`;
+        }).join('');
+      } else {
+        modalEnergyBox.style.display = 'none';
+      }
+    }
+
+    modalEnergyPills.addEventListener('click', (e) => {
+      const pill = e.target.closest('.energy-filter-pill');
+      if (!pill) return;
+      modalEnergyPills.querySelectorAll('.energy-filter-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      activeEnergyFilter = pill.dataset.energy;
+      renderModalList();
+    });
 
     // 更新左右翻页箭头状态
     function updateNavButtons() {
@@ -1293,7 +1477,11 @@
       const keyword = modalFilterInput.value.trim().toLowerCase();
       let filtered = [];
 
-      currentSeriesModels.forEach((mName, idx) => {
+      currentSeriesModels.forEach((mItem, idx) => {
+        const mName = Array.isArray(mItem) ? mItem[0] : mItem;
+        const mEnergy = Array.isArray(mItem) ? mItem[1] : 'A';
+        const eInfo = ENERGY_MAP[mEnergy] || ENERGY_MAP['A'];
+
         let matchYear = true;
         if (activeYearFilter === '其他/未标年份') {
           matchYear = !/\b((?:19|20)\d{2})款?/.test(mName);
@@ -1301,30 +1489,42 @@
           matchYear = mName.includes(activeYearFilter.replace('款', ''));
         }
 
-        let matchKeyword = true;
-        if (keyword) {
-          matchKeyword = mName.toLowerCase().includes(keyword);
+        let matchEnergy = true;
+        if (activeEnergyFilter !== '全部') {
+          matchEnergy = (mEnergy === activeEnergyFilter);
         }
 
-        if (matchYear && matchKeyword) {
+        let matchKeyword = true;
+        if (keyword) {
+          const haystack = (mName + ' ' + eInfo.name + ' ' + mEnergy).toLowerCase();
+          matchKeyword = haystack.includes(keyword);
+        }
+
+        if (matchYear && matchEnergy && matchKeyword) {
           const mId = 'M' + String(idx + 1).padStart(3, '0');
-          const fullId = `${currentBrand[0]}-${currentSeries[0]}-${mId}`;
+          const fullId = `${currentBrand[0]}-${currentSeries[0]}-${mId}-${mEnergy}`;
           filtered.push({
             index: idx,
             name: mName,
-            fullId: fullId
+            fullId: fullId,
+            energy: eInfo
           });
         }
       });
 
       if (filtered.length === 0) {
-        modalList.innerHTML = '<div style="padding:32px; text-align:center; color:#94a3b8; font-size:0.9rem;">未找到符合条件的年款配置，请尝试切换年份或清空过滤词</div>';
+        modalList.innerHTML = '<div style="padding:32px; text-align:center; color:#94a3b8; font-size:0.9rem;">未找到符合条件的年款配置，请尝试切换年份、动力类型或清空过滤词</div>';
         return;
       }
 
       modalList.innerHTML = filtered.map(item => `
         <div class="modal-item ${currentModelIndex === item.index ? 'active' : ''}" data-idx="${item.index}">
-          <div class="modal-item-text">${item.name}</div>
+          <div class="modal-item-info-col">
+            <div class="modal-item-text">${item.name}</div>
+            <div class="modal-item-tags">
+              <span class="energy-pill ${item.energy.badgeClass}">${item.energy.icon} ${item.energy.name} [${item.energy.code}]</span>
+            </div>
+          </div>
           <div class="modal-item-badge">${item.fullId}</div>
         </div>
       `).join('');
@@ -1342,23 +1542,34 @@
 
     function selectModelByIndex(idx) {
       currentModelIndex = idx;
-      const mName = currentSeries[2][idx];
+      const mItem = currentSeries[2][idx];
+      const mName = Array.isArray(mItem) ? mItem[0] : mItem;
+      const mEnergy = Array.isArray(mItem) ? mItem[1] : 'A';
+      const eInfo = ENERGY_MAP[mEnergy] || ENERGY_MAP['A'];
+
       const mId = 'M' + String(idx + 1).padStart(3, '0');
-      const fullId = `${currentBrand[0]}-${currentSeries[0]}-${mId}`;
+      const fullId = `${currentBrand[0]}-${currentSeries[0]}-${mId}-${mEnergy}`;
       const fullName = `${currentBrand[1]} · ${currentSeries[1]} · ${mName}`;
 
-      modelSelectText.textContent = mName;
+      modelSelectText.innerHTML = `<span>${mName}</span> <span class="energy-pill ${eInfo.badgeClass}" style="margin-left:8px;">${eInfo.icon} ${eInfo.name} [${eInfo.code}]</span>`;
       modelSelectText.classList.add('has-value');
 
-      showResultCard(fullId, fullName);
+      showResultCard(fullId, fullName, eInfo);
     }
 
     // 展示结果卡片（关键：居中滚动，彻底拉开与见数右下角按钮的距离！）
-    function showResultCard(fullId, fullName) {
+    function showResultCard(fullId, fullName, eInfo) {
       currentFullId = fullId;
       currentFullName = fullName;
       resultCarName.textContent = fullName;
       resultIdValue.textContent = fullId;
+
+      // 更新动力类型展示与核对提示
+      resultEnergyBadge.className = `energy-pill ${eInfo.badgeClass}`;
+      resultEnergyBadge.textContent = `${eInfo.icon} ${eInfo.name} [代码标识: ${eInfo.code}]`;
+      resultEnergyDesc.textContent = `· ${eInfo.tip}`;
+      energyMatchAlertText.innerHTML = `<strong>意向核对提醒：</strong>该车型代码以 <strong>【${eInfo.code}】</strong> 结尾，属于<strong>【${eInfo.name}】</strong>。请确保与您在问卷前文自述的车型动力意向一致，如不一致请重新挑选。`;
+
       resultCard.style.display = 'block';
 
       // 核心优化：平滑滚动至屏幕中央 (block: 'center')，避免与右下角“继续作答”悬浮按钮发生任何重叠
@@ -1388,6 +1599,10 @@
         const sName = s[1];
         const models = s[2];
 
+        // 收集该车系覆盖的所有动力类型
+        const sEnergySet = new Set(models.map(m => Array.isArray(m) ? m[1] : 'A'));
+        const sEnergyNames = Array.from(sEnergySet).map(code => (ENERGY_MAP[code] ? ENERGY_MAP[code].name : '')).join(' ');
+
         seriesIndex.push({
           bIndex: i,
           sIndex: j,
@@ -1395,24 +1610,31 @@
           brand: bName,
           series: sName,
           modelCount: models.length,
-          searchStr: (bName + ' ' + sName).toLowerCase()
+          energySet: Array.from(sEnergySet),
+          searchStr: (bName + ' ' + sName + ' ' + sEnergyNames).toLowerCase()
         });
 
         for (let k = 0; k < models.length; k++) {
-          const mName = models[k];
+          const mItem = models[k];
+          const mName = Array.isArray(mItem) ? mItem[0] : mItem;
+          const mEnergy = Array.isArray(mItem) ? mItem[1] : 'A';
+          const eInfo = ENERGY_MAP[mEnergy] || ENERGY_MAP['A'];
           const mId = 'M' + String(k + 1).padStart(3, '0');
-          const fullId = `${bId}-${sId}-${mId}`;
+          const fullId = `${bId}-${sId}-${mId}-${mEnergy}`;
+
           modelIndex.push({
             bIndex: i,
             sIndex: j,
             mIndex: k,
             bId, sId, mId,
+            energyCode: mEnergy,
+            energyInfo: eInfo,
             fullId,
             brand: bName,
             series: sName,
             model: mName,
             seriesKey: `${bId}-${sId}`,
-            searchStr: (bName + ' ' + sName + ' ' + mName).toLowerCase()
+            searchStr: (bName + ' ' + sName + ' ' + mName + ' ' + eInfo.name + ' ' + mEnergy).toLowerCase()
           });
         }
       }
@@ -1517,7 +1739,10 @@
                 ${matchedModels.map(m => `
                   <div class="search-item" data-full-id="${m.fullId}" data-b="${m.bIndex}" data-s="${m.sIndex}" data-m="${m.mIndex}">
                     <div class="search-item-info">
-                      <div class="search-item-title">${m.brand} · ${m.series}</div>
+                      <div class="search-item-title">
+                        <span>${m.brand} · ${m.series}</span>
+                        <span class="energy-pill ${m.energyInfo.badgeClass}" style="margin-left: 6px;">${m.energyInfo.icon} ${m.energyInfo.name} [${m.energyCode}]</span>
+                      </div>
                       <div class="search-item-sub">${m.model}</div>
                     </div>
                     <div class="search-item-badge">${m.fullId}</div>
